@@ -56,3 +56,12 @@ class Graph(object):
 
 
 
+#import networkx as nx
+#import networkx.algorithms.approximation
+#G=nx.DiGraph()
+#G.add_nodes_from([0,1,2,3,4,5])
+#G.add_edges_from([(0,1),(0,4),(1,5),(1,2),(2,5),(2,3)])
+#G=G.to_undirected()
+#a=networkx.algorithms.approximation.vertex_cover.min_weighted_vertex_cover(G)
+#A=nx.adjacency_matrix(G)
+#AA = nx.convert_matrix.to_numpy_matrix(G)
