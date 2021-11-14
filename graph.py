@@ -1,3 +1,5 @@
+import numpy as np
+
 class Graph(object):
     def __init__(
         self,
@@ -53,9 +55,11 @@ class Graph(object):
                         self.max_outdegree = self.n_out[n]
                     if self.n_in[n] > self.max_indegree:
                         self.max_indegree = self.n_in[n]
-
-
-
+        self.W=np.zeros((self.num_nodes,self.num_nodes)).astype(np.float32)
+        for k,v in self.out_edges.items():
+            for c in v:
+                self.W[k,c[0]]=c[1]
+        print('Weight matrix:\n',self.W)
 #import networkx as nx
 #import networkx.algorithms.approximation
 #G=nx.DiGraph()
