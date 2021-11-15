@@ -42,7 +42,8 @@ def state2tensor(state):
            #(1 if i == sol_last_node else 0),
            #coords[i,0],
            #coords[i,1]
-           state.G.n_in[i]
+           state.G.n_in[i],
+           state.G.n_out[i],
           ] for i in range(state.num_nodes)]
     
     return torch.tensor(xv, dtype=torch.float32, requires_grad=False, device=device)

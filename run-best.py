@@ -14,7 +14,7 @@ INIT_LR = 5e-3
 LR_DECAY_RATE = 0.9995#1. - 2e-5  # learning rate decay
 FOLDER_NAME = './models'  # where to checkpoint the best models
 NR_NODES=6
-State = namedtuple('State',('W', 'partial_solution', 'num_nodes', 'min_VC', 'candidates'))
+State = namedtuple('State',('G', 'partial_solution', 'num_nodes', 'min_VC', 'candidates'))
 
 all_lengths_fnames = [f for f in os.listdir(FOLDER_NAME) if f.endswith('.tar')]
 shortest_fname = sorted(all_lengths_fnames, key=lambda s: float(s.split('.tar')[0].split('_')[-1]))[0]
@@ -51,13 +51,13 @@ solution = []
 remaining_candidates = [i for i in range(NR_NODES) if i not in solution]
 
 # current state (tuple and tensor)
-current_state = State(partial_solution=solution, W=W, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
+current_state = State(partial_solution=solution, G=G, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
 current_state_tsr = state2tensor(current_state)
 while not is_state_final(current_state,G):
     next_node, est_reward = Q_func.get_best_action(current_state_tsr, current_state)
     solution=solution+[next_node]
     print(solution)
     remaining_candidates = [i for i in range(NR_NODES) if i not in solution]
-    current_state = State(partial_solution=solution, W=W, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
+    current_state = State(partial_solution=solution, G=G, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
     current_state_tsr = state2tensor(current_state)
 print('ratio',len(solution)/len(solutions[0]))
