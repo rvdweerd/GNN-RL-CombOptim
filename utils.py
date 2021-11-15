@@ -42,8 +42,8 @@ def state2tensor(state):
            #(1 if i == sol_last_node else 0),
            #coords[i,0],
            #coords[i,1]
-           i
-          ] for i in range(state.W.shape[0])]
+           state.G.n_in[i]
+          ] for i in range(state.num_nodes)]
     
     return torch.tensor(xv, dtype=torch.float32, requires_grad=False, device=device)
 
@@ -102,10 +102,10 @@ def is_state_final(state,G):
     return all_edges_covered(state.partial_solution, G.out_edges, state.min_VC)
 
 def get_next_neighbor_random(state):
-    solution, W, candidates = state.partial_solution, state.W, state.candidates
+    solution, G, candidates = state.partial_solution, state.G, state.candidates
     
     if len(solution) == 0:
-        return random.choice(range(W.shape[0]))
+        return random.choice(range(state.num_nodes))
     #already_in = set(solution)
     #candidates = list(filter(lambda n: n.item() not in already_in, W[solution[-1]].nonzero()))
     if len(candidates) == 0:
@@ -131,7 +131,7 @@ def get_graph(n=6, p_edge=0.4):
     for node1 in range(n):
         for node2 in range(n):
             eps=random.random()
-            if eps<=p_edge:
+            if eps<=p_edge and node2 != node1:
                 edgelist.append([node1,node2,1])
     G=Graph(nodelist,edgelist,Reflexive=False,Directed=True)
     solutions=Solve_MinVertexCover_ASP(G)

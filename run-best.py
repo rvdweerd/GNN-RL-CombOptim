@@ -60,4 +60,4 @@ while not is_state_final(current_state,G):
     remaining_candidates = [i for i in range(NR_NODES) if i not in solution]
     current_state = State(partial_solution=solution, W=W, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
     current_state_tsr = state2tensor(current_state)
-
+print('ratio',len(solution)/len(solutions[0]))

@@ -14,12 +14,12 @@ SEED = 1  # A seed for the random number generator
 NR_NODES = 6  # Number of nodes N
 EMBEDDING_DIMENSIONS = 8#5  # Embedding dimension D
 EMBEDDING_ITERATIONS_T = 4  # Number of embedding iterations T
-G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
-solutions=Solve_MinVertexCover_ASP(G)
+#G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
+#solutions=Solve_MinVertexCover_ASP(G)
 # Learning
-NR_EPISODES = 2501
-MEMORY_CAPACITY = 10000
-N_STEP_QL = 4  # Number of steps (n) in n-step Q-learning to wait before computing target reward estimate
+NR_EPISODES = 10001
+MEMORY_CAPACITY = 5000
+N_STEP_QL = 2  # Number of steps (n) in n-step Q-learning to wait before computing target reward estimate
 BATCH_SIZE = 16
 GAMMA = 0.9
 INIT_LR = 5e-3
@@ -31,7 +31,7 @@ FOLDER_NAME = './models'  # where to checkpoint the best models
 seed_everything(SEED)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-State = namedtuple('State',('W', 'partial_solution', 'num_nodes', 'min_VC', 'candidates'))
+State = namedtuple('State',('G', 'partial_solution', 'num_nodes', 'min_VC', 'candidates'))
 
 def Test():
     G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
@@ -105,7 +105,7 @@ for episode in range(NR_EPISODES):
     remaining_candidates = [i for i in range(NR_NODES) if i not in solution]
     
     # current state (tuple and tensor)
-    current_state = State(partial_solution=solution, W=W, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
+    current_state = State(partial_solution=solution, G=G, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
     current_state_tsr = state2tensor(current_state)
     
     # Keep track of some variables for insertion in replay memory:
@@ -138,7 +138,7 @@ for episode in range(NR_EPISODES):
 
         # reward observed for taking this step        
         reward = -1.
-        next_state = State(partial_solution=next_solution, W=W, num_nodes=NR_NODES, min_VC=true_minVC, candidates=next_remaining_candidates)
+        next_state = State(partial_solution=next_solution, G=G, num_nodes=NR_NODES, min_VC=true_minVC, candidates=next_remaining_candidates)
         next_state_tsr = state2tensor(next_state)
         
         # store rewards and states obtained along this episode:
@@ -176,7 +176,7 @@ for episode in range(NR_EPISODES):
             experiences = memory.sample_batch(BATCH_SIZE)
             
             batch_states_tsrs = [e.state_tsr for e in experiences]
-            batch_Ws = [e.state.W for e in experiences]
+            batch_Ws = [torch.tensor(e.state.G.W) for e in experiences]
             batch_actions = [e.action for e in experiences]
             batch_targets = []
             
@@ -194,7 +194,8 @@ for episode in range(NR_EPISODES):
             
             """ Save model when we reach a new low average path length
             """
-            med_length = np.median(path_length_ratios[-100:])
+            #med_length = np.median(path_length_ratios[-100:])
+            med_length = int(np.mean(path_length_ratios[-100:])*10)/10
             if med_length < current_min_med_length:
                 current_min_med_length = med_length
                 checkpoint_model(Q_net, optimizer, lr_scheduler, loss, episode, med_length)
@@ -205,8 +206,9 @@ for episode in range(NR_EPISODES):
 
     if episode % 10 == 0:
         print('Ep %d. Loss = %.3f / median length = %.3f / last = %.4f / epsilon = %.4f / lr = %.4f' % (
-            episode, (-1 if loss is None else loss), np.median(path_length_ratios[-50:]), length/optimal_length, epsilon,
+            episode, (-1 if loss is None else loss), np.mean(path_length_ratios[-50:]), length/optimal_length, epsilon,
             Q_func.optimizer.param_groups[0]['lr']))
+        #print(path_length_ratios[-50:])
         found_solutions[episode] = (W.clone(), [n for n in solution])
 
 
