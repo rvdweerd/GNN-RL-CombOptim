@@ -1,0 +1,22 @@
+name: rlcourse
+channels:
+  - anaconda
+  - pytorch
+  - potassco
+  - conda-forge
+  - defaults
+dependencies:
+  - pytorch
+  - matplotlib
+  - numpy
+  - python
+  - scipy
+  - seaborn
+  - tqdm
+  - pytorch
+  - torchvision
+  - pyglet
+  - pip
+  - clingo
+  - pip:
+    - gym
