@@ -176,7 +176,7 @@ for episode in range(NR_EPISODES):
             experiences = memory.sample_batch(BATCH_SIZE)
             
             batch_states_tsrs = [e.state_tsr for e in experiences]
-            batch_Ws = [torch.tensor(e.state.G.W) for e in experiences]
+            batch_Ws = [torch.tensor(e.state.G.W,dtype=torch.float32,device=device) for e in experiences]
             batch_actions = [e.action for e in experiences]
             batch_targets = []
             
