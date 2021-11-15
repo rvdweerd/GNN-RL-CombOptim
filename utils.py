@@ -42,8 +42,9 @@ def state2tensor(state):
            #(1 if i == sol_last_node else 0),
            #coords[i,0],
            #coords[i,1]
-           state.G.n_in[i],
-           state.G.n_out[i],
+           #state.G.n_in[i],
+           i
+           #state.G.n_out[i],
           ] for i in range(state.num_nodes)]
     
     return torch.tensor(xv, dtype=torch.float32, requires_grad=False, device=device)
@@ -103,15 +104,13 @@ def is_state_final(state,G):
     return all_edges_covered(state.partial_solution, G.out_edges, state.min_VC)
 
 def get_next_neighbor_random(state):
-    solution, G, candidates = state.partial_solution, state.G, state.candidates
-    
-    if len(solution) == 0:
+    if len(state.partial_solution) == 0:
         return random.choice(range(state.num_nodes))
     #already_in = set(solution)
     #candidates = list(filter(lambda n: n.item() not in already_in, W[solution[-1]].nonzero()))
-    if len(candidates) == 0:
+    if len(state.candidates) == 0:
         return None
-    return random.choice(candidates)#.item()
+    return random.choice(state.candidates)#.item()
 
 def get_graph_mat(n=10, size=1):
     """ Throws n nodes uniformly at random on a square, and build a (fully connected) graph.
@@ -121,7 +120,7 @@ def get_graph_mat(n=10, size=1):
     dist_mat = distance_matrix(coords, coords)
     return coords, dist_mat
 
-def get_graph0(n=6):
+def get_graph_(n=6):
     G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
     solutions=Solve_MinVertexCover_ASP(G)
     return G, solutions
@@ -137,8 +136,6 @@ def get_graph(n=6, p_edge=0.4):
     G=Graph(nodelist,edgelist,Reflexive=False,Directed=True)
     solutions=Solve_MinVertexCover_ASP(G)
     return G, solutions
-
-
 
 def TestTorch():
     alpha = Variable(torch.tensor(0,dtype=torch.float,device=device),requires_grad=True)

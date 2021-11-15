@@ -40,7 +40,7 @@ class QNet(nn.Module):
         # * A binary variable indicating whether the node is the first of the visited sequence
         # * A binary variable indicating whether the node is the last of the visited sequence
         # * The node number //The (x, y) coordinates of the node.
-        self.node_dim = 3
+        self.node_dim = 2
         
         # We can have an extra layer after theta_1 (for the sake of example to make the network deeper)
         nr_extra_layers_1 = 0

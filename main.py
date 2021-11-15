@@ -9,7 +9,7 @@ from utils import *
 from collections import namedtuple
 from qnet import QNet, QFunction
 
-SEED = 1  # A seed for the random number generator
+SEED = 10  # A seed for the random number generator
 # Graph
 NR_NODES = 6  # Number of nodes N
 EMBEDDING_DIMENSIONS = 8#5  # Embedding dimension D
@@ -22,9 +22,10 @@ MEMORY_CAPACITY = 5000
 N_STEP_QL = 2  # Number of steps (n) in n-step Q-learning to wait before computing target reward estimate
 BATCH_SIZE = 16
 GAMMA = 0.9
-INIT_LR = 5e-3
+INIT_LR = 1e-3
 LR_DECAY_RATE = 0.99998#1. - 2e-5  # learning rate decay
 MIN_EPSILON = 0.1
+EPSILON_0 = 0.5
 EPSILON_DECAY_RATE = 6e-4  # epsilon decay
 FOLDER_NAME = './models'  # where to checkpoint the best models
 
@@ -86,12 +87,12 @@ Q_func, Q_net, optimizer, lr_scheduler = init_model()
 memory = Memory(MEMORY_CAPACITY)
 
 # Storing metrics about training:
-found_solutions = dict()  # episode --> (coords, W, solution)
+found_solutions = dict()  # episode --> (W, solution)
 losses = []
 path_length_ratios = []
 
-# keep track of median path length for model checkpointing
-current_min_med_length = float('inf')
+# keep track of mean ratio of estimated MVC / real MVC
+current_min_mean_ratio = float('inf')
 
 for episode in range(NR_EPISODES):
     # sample a new random graph
@@ -115,7 +116,7 @@ for episode in range(NR_EPISODES):
     actions = []
     
     # current value of epsilon
-    epsilon = max(MIN_EPSILON, (1-EPSILON_DECAY_RATE)**episode)
+    epsilon = max(MIN_EPSILON, EPSILON_0*((1-EPSILON_DECAY_RATE)**episode))
     
     nr_explores = 0
     t = -1
@@ -126,15 +127,16 @@ for episode in range(NR_EPISODES):
             # explore
             next_node = get_next_neighbor_random(current_state)
             nr_explores += 1
+            if episode % 50 == 0:
+                print('Ep {} explore | current sol: {} | sol: {}'.format(episode, solution, solutions),'nextnode',next_node)
         else:
             # exploit
             next_node, est_reward = Q_func.get_best_action(current_state_tsr, current_state)
             if episode % 50 == 0:
-                print('Ep {} | current sol: {} / next est reward: {} | sol: {}'.format(episode, solution, est_reward,solutions[0]),'nextnode',next_node)
+                print('Ep {} exploit | current sol: {} / next est reward: {} | sol: {}'.format(episode, solution, est_reward,solutions),'nextnode',next_node)
         
         next_solution = solution + [next_node]
         next_remaining_candidates = [i for i in range(NR_NODES) if i not in next_solution]
-
 
         # reward observed for taking this step        
         reward = -1.
@@ -195,10 +197,10 @@ for episode in range(NR_EPISODES):
             """ Save model when we reach a new low average path length
             """
             #med_length = np.median(path_length_ratios[-100:])
-            med_length = int(np.mean(path_length_ratios[-100:])*10)/10
-            if med_length < current_min_med_length:
-                current_min_med_length = med_length
-                checkpoint_model(Q_net, optimizer, lr_scheduler, loss, episode, med_length)
+            mean_ratio = int(np.mean(path_length_ratios[-100:])*100)/100
+            if mean_ratio < current_min_mean_ratio:
+                current_min_mean_ratio = mean_ratio
+                checkpoint_model(Q_net, optimizer, lr_scheduler, loss, episode, mean_ratio)
                 
     length = len(solution)
     optimal_length = len(solutions[0])
