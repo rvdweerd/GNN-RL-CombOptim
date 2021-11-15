@@ -59,7 +59,7 @@ class Graph(object):
         for k,v in self.out_edges.items():
             for c in v:
                 self.W[k,c[0]]=c[1]
-        print('Weight matrix:\n',self.W)
+        #print('Weight matrix:\n',self.W)
 #import networkx as nx
 #import networkx.algorithms.approximation
 #G=nx.DiGraph()

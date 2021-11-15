@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from torch.autograd import Variable
 import torch.optim as optim
 from scipy.spatial import distance_matrix
+from asp import Solve_MinVertexCover_ASP
+from graph import Graph
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -30,20 +32,85 @@ def state2tensor(state):
         whether it is first or last, and its (x,y) coordinates.
     """
     solution = set(state.partial_solution)
-    sol_last_node = state.partial_solution[-1] if len(state.partial_solution) > 0 else -1
-    sol_first_node = state.partial_solution[0] if len(state.partial_solution) > 0 else -1
+    #sol_last_node = state.partial_solution[-1] if len(state.partial_solution) > 0 else -1
+    #sol_first_node = state.partial_solution[0] if len(state.partial_solution) > 0 else -1
     #coords = state.coords
     #nr_nodes = coords.shape[0]
 
     xv = [[(1 if i in solution else 0),
-           (1 if i == sol_first_node else 0),
-           (1 if i == sol_last_node else 0),
+           #(1 if i == sol_first_node else 0),
+           #(1 if i == sol_last_node else 0),
            #coords[i,0],
            #coords[i,1]
            i
           ] for i in range(state.W.shape[0])]
     
     return torch.tensor(xv, dtype=torch.float32, requires_grad=False, device=device)
+
+
+
+# Note: we store state tensors in experience to compute these tensors only once later on
+from collections import namedtuple
+Experience = namedtuple('Experience', ('state', 'state_tsr', 'action', 'reward', 'next_state', 'next_state_tsr'))
+
+class Memory(object):
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.memory = []
+        self.position = 0
+        self.nr_inserts = 0
+        
+    def remember(self, experience):
+        if len(self.memory) < self.capacity:
+            self.memory.append(None)
+        self.memory[self.position] = experience
+        self.position = (self.position + 1) % self.capacity
+        self.nr_inserts += 1
+        
+    def sample_batch(self, batch_size):
+        return random.sample(self.memory, batch_size)
+    
+    def __len__(self):
+        return min(self.nr_inserts, self.capacity)
+
+def total_distance(solution, W):
+    if len(solution) < 2:
+        return 0  # there is no travel
+    
+    total_dist = 0
+    for i in range(len(solution) - 1):
+        total_dist += W[solution[i], solution[i+1]].item()
+        
+    # if this solution is "complete", go back to initial point
+    if len(solution) == W.shape[0]:
+        total_dist += W[solution[-1], solution[0]].item()
+
+    return total_dist
+
+def all_edges_covered(partial_solution, out_edges, true_min_vertex_cover):
+    if len(partial_solution) < true_min_vertex_cover:
+        return False
+    else:
+        solset=set(partial_solution)
+        for k,v in out_edges.items():
+            for e in v:
+                if not (k in partial_solution or e[0] in partial_solution):
+                    return False
+        return True
+
+def is_state_final(state,G):
+    return all_edges_covered(state.partial_solution, G.out_edges, state.min_VC)
+
+def get_next_neighbor_random(state):
+    solution, W, candidates = state.partial_solution, state.W, state.candidates
+    
+    if len(solution) == 0:
+        return random.choice(range(W.shape[0]))
+    #already_in = set(solution)
+    #candidates = list(filter(lambda n: n.item() not in already_in, W[solution[-1]].nonzero()))
+    if len(candidates) == 0:
+        return None
+    return random.choice(candidates)#.item()
 
 def get_graph_mat(n=10, size=1):
     """ Throws n nodes uniformly at random on a square, and build a (fully connected) graph.
@@ -52,6 +119,25 @@ def get_graph_mat(n=10, size=1):
     coords = size * np.random.uniform(size=(n,2))
     dist_mat = distance_matrix(coords, coords)
     return coords, dist_mat
+
+def get_graph0(n=6):
+    G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
+    solutions=Solve_MinVertexCover_ASP(G)
+    return G, solutions
+
+def get_graph(n=6, p_edge=0.4):
+    nodelist=[i for i in range(n)]
+    edgelist=[]
+    for node1 in range(n):
+        for node2 in range(n):
+            eps=random.random()
+            if eps<=p_edge:
+                edgelist.append([node1,node2,1])
+    G=Graph(nodelist,edgelist,Reflexive=False,Directed=True)
+    solutions=Solve_MinVertexCover_ASP(G)
+    return G, solutions
+
+
 
 def TestTorch():
     alpha = Variable(torch.tensor(0,dtype=torch.float,device=device),requires_grad=True)
