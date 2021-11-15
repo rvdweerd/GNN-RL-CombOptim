@@ -110,7 +110,7 @@ class QFunction():
         """ Computes the best (greedy) action to take from a given state
             Returns a tuple containing the ID of the next node and the corresponding estimated reward
         """
-        W = torch.tensor(state.G.W)
+        W = torch.tensor(state.G.W,dtype=torch.float32,device=device)
         estimated_rewards = self.predict(state_tsr, W)  # size (nr_nodes,)
         sorted_reward_idx = estimated_rewards.argsort(descending=True)
         
