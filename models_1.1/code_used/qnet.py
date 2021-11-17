@@ -40,10 +40,10 @@ class QNet(nn.Module):
         # * A binary variable indicating whether the node is the first of the visited sequence
         # * A binary variable indicating whether the node is the last of the visited sequence
         # * The node number //The (x, y) coordinates of the node.
-        self.node_dim = 2
+        self.node_dim = 9
         
         # We can have an extra layer after theta_1 (for the sake of example to make the network deeper)
-        nr_extra_layers_1 = 0
+        nr_extra_layers_1 = 1
         
         # Build the learnable affine maps:
         self.theta1 = nn.Linear(self.node_dim, self.emb_dim, True)
@@ -55,7 +55,8 @@ class QNet(nn.Module):
         self.theta7 = nn.Linear(self.emb_dim, self.emb_dim, True)
         
         self.theta1_extras = [nn.Linear(self.emb_dim, self.emb_dim, True) for _ in range(nr_extra_layers_1)]
-        
+        self.numTrainableParameters()
+
     def forward(self, xv, Ws):
         # xv: The node features (batch_size, num_nodes, node_dim)
         # Ws: The graphs (batch_size, num_nodes, num_nodes)
@@ -91,7 +92,15 @@ class QNet(nn.Module):
             
         out = F.relu(torch.cat([global_state, local_action], dim=2))
         return self.theta5(out).squeeze(dim=2)
-
+        
+    def numTrainableParameters(self):
+        total = 0
+        for name, p in self.named_parameters():
+            if p.requires_grad: total += np.prod(p.shape)
+            print("{:24s} {:12s} requires grad={}".format(name,str(list(p.shape)), p.requires_grad))
+        print("\nTotal number of parameters: {}\n".format(total))
+        assert total == sum(p.numel() for p in self.parameters() if p.requires_grad)
+        return total
 
 class QFunction():
     def __init__(self, model, optimizer, lr_scheduler):

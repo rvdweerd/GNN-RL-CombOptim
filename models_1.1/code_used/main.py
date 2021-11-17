@@ -9,10 +9,10 @@ from utils import *
 from collections import namedtuple
 from qnet import QNet, QFunction
 
-SEED = 110  # A seed for the random number generator
+SEED = 10  # A seed for the random number generator
 # Graph
 NR_NODES = 6  # Number of nodes N
-EMBEDDING_DIMENSIONS = 8#5  # Embedding dimension D
+EMBEDDING_DIMENSIONS = 36#5  # Embedding dimension D
 EMBEDDING_ITERATIONS_T = 4  # Number of embedding iterations T
 #G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
 #solutions=Solve_MinVertexCover_ASP(G)
@@ -23,7 +23,7 @@ N_STEP_QL = 2  # Number of steps (n) in n-step Q-learning to wait before computi
 BATCH_SIZE = 16
 GAMMA = 0.9
 INIT_LR = 1e-3
-LR_DECAY_RATE = 0.999998#1. - 2e-5  # learning rate decay
+LR_DECAY_RATE = 0.99998#1. - 2e-5  # learning rate decay
 MIN_EPSILON = 0.1
 EPSILON_0 = 0.5
 EPSILON_DECAY_RATE = 6e-4  # epsilon decay

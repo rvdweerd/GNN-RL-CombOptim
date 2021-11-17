@@ -1,0 +1,51 @@
+=======
+RESULTS
+=======
+graph count 32768
+Ratios per minVC (number of nodes in minVC):
+all  32768 100% 1.046 28447 0.87
+0        1 0%   1.000 1     1.00
+1      171 0%   1.000 171   1.00
+2     4970 15%  1.031 4703  0.95
+3    21837 66%  1.060 17916 0.82
+4     5788 17%  1.006 5655  0.98
+5        1 0%   1.000 1     1.00
+------------------------------------
+Ratios per nSol (number of minVC solutions):
+all  32768 100% 1.046 28447 0.87
+1    10692 32%  1.108 7457  0.70
+2     8215 25%  1.038 7278  0.89
+3     5195 15%  1.005 5101  0.98
+4     3510 10%  1.002 3476  0.99
+6     1801 5%   1.000 1799  1.00
+5     2565 7%   1.002 2546  0.99
+8      120 0%   1.000 120   1.00
+7      660 2%   1.000 660   1.00
+9       10 0%   1.000 10    1.00
+
+===========
+HYPERPARAMS
+===========
+SEED = 10  # A seed for the random number generator
+
+# Graph
+NR_NODES = 6  # Number of nodes N
+EMBEDDING_DIMENSIONS = 36   # Embedding dimension D
+EMBEDDING_ITERATIONS_T = 4  # Number of embedding iterations T
+
+# Learning
+NR_EPISODES = 10001
+MEMORY_CAPACITY = 5000
+N_STEP_QL = 2  # Number of steps (n) in n-step Q-learning to wait before computing target reward estimate
+BATCH_SIZE = 16
+GAMMA = 0.9
+INIT_LR = 1e-3
+LR_DECAY_RATE = 0.99998#1. - 2e-5  # learning rate decay
+MIN_EPSILON = 0.1
+EPSILON_0 = 0.5
+EPSILON_DECAY_RATE = 6e-4  # epsilon decay
+
+# State definition
+xv = [[(1 if i in solution else 0),
+           i
+          ] for i in range(state.num_nodes)]
