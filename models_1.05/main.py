@@ -23,7 +23,7 @@ N_STEP_QL = 2  # Number of steps (n) in n-step Q-learning to wait before computi
 BATCH_SIZE = 16
 GAMMA = 0.9
 INIT_LR = 1e-3
-LR_DECAY_RATE = 0.99999#1. - 2e-5  # learning rate decay
+LR_DECAY_RATE = 0.999998#1. - 2e-5  # learning rate decay
 MIN_EPSILON = 0.1
 EPSILON_0 = 0.5
 EPSILON_DECAY_RATE = 6e-4  # epsilon decay
@@ -221,17 +221,13 @@ def _moving_avg(x, N=10):
 
 plt.figure(figsize=(8,5))
 plt.semilogy(_moving_avg(losses, 100))
-plt.title('Loss (moving average) during training')
 plt.ylabel('loss')
 plt.xlabel('training iteration')
-plt.savefig('models/lossplot.png')
-plt.clf()
 
 plt.figure(figsize=(8,5))
 plt.plot(_moving_avg(path_length_ratios, 100))
-plt.title('Ratio (moving average) of (estimated MVC) / (real MVC)')
-plt.ylabel('ratio')
+plt.ylabel('average length')
 plt.xlabel('episode')
-plt.savefig('models/ratioplot.png')
-plt.clf()
+
+plt.show()
 
