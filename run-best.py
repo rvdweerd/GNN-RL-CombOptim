@@ -40,9 +40,11 @@ Q_func, Q_net, optimizer, lr_scheduler = init_model_from_file(os.path.join(FOLDE
 #G=Graph([0,1,2,3,4,5],[[0,4,1],[0,1,1],[1,5,1],[1,2,1],[2,5,1],[2,3,1]],Reflexive=False,Directed=True)
 #solutions=Solve_MinVertexCover_ASP(G)
 G,solutions=get_graph()
-print(G.W)
-print(solutions)
 true_minVC=len(solutions[0])
+print('Adjacency matrix:')
+print(G.W)
+print('True solution(s):\n',solutions)
+print('True Minimum Vertex Cover:',true_minVC)
 W = torch.tensor(G.W, dtype=torch.float32, requires_grad=False, device=device)
 
 # current partial solution - a list of node index
@@ -56,8 +58,9 @@ current_state_tsr = state2tensor(current_state)
 while not is_state_final(current_state,G):
     next_node, est_reward = Q_func.get_best_action(current_state_tsr, current_state)
     solution=solution+[next_node]
-    print(solution)
     remaining_candidates = [i for i in range(NR_NODES) if i not in solution]
     current_state = State(partial_solution=solution, G=G, num_nodes=NR_NODES, min_VC=true_minVC, candidates=remaining_candidates)
     current_state_tsr = state2tensor(current_state)
-print('ratio',len(solution)/len(solutions[0]))
+print('Predicted solution by trained Qnet:',solution)
+print("Ratio MVC_predicted / MVC_true: {:.2f}".format(len(solution)/true_minVC))
+print('\n\n')
